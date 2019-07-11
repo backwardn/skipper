@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -96,11 +97,17 @@ func NewApiUsageMonitoring(
 
 // apiConfig is the structure used to parse the parameters of the filter.
 type apiConfig struct {
-	ApplicationId         string   `json:"application_id"`
-	Tag                   string   `json:"tag"`
-	ApiId                 string   `json:"api_id"`
-	PathTemplates         []string `json:"path_templates"`
-	ClientTrackingPattern string   `json:"client_tracking_pattern"`
+	ApplicationId         string           `json:"application_id"`
+	Tag                   string           `json:"tag"`
+	ApiId                 string           `json:"api_id"`
+	PathTemplates         []string         `json:"path_templates"`
+	ClientTrackingPattern string           `json:"client_tracking_pattern"`
+	Context               apiConfigContext `json:"context"`
+}
+
+type apiConfigContext struct {
+	ConfigID      string    `json:"config_id"`
+	ConfigCreated time.Time `json:"config_created"`
 }
 
 type apiUsageMonitoringSpec struct {
@@ -127,6 +134,7 @@ func (s *apiUsageMonitoringSpec) CreateFilter(args []interface{}) (filter filter
 		Spec:        s,
 		Paths:       paths,
 		UnknownPath: s.buildUnknownPathInfo(paths),
+		ConfigInfo:  configInfo(apis),
 	}
 	return
 }
@@ -173,6 +181,23 @@ func (s *apiUsageMonitoringSpec) buildUnknownPathInfo(paths []*pathInfo) *pathIn
 			s.unknownPath.ClientTracking)
 	}
 	return s.unknownPath
+}
+
+func configInfo(apis []*apiConfig) apiConfigContext {
+	info := apiConfigContext{}
+
+	for _, api := range apis {
+		context := api.Context
+		if context.ConfigID == "" || context.ConfigCreated.IsZero() {
+			continue
+		}
+
+		if info.ConfigCreated.IsZero() || context.ConfigCreated.Before(info.ConfigCreated) {
+			info = context
+		}
+	}
+
+	return info
 }
 
 func (s *apiUsageMonitoringSpec) buildPathInfoListFromConfiguration(apis []*apiConfig) []*pathInfo {

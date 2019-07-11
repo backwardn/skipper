@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/zalando/skipper/filters"
 	"github.com/zalando/skipper/filters/flowid"
 )
 
@@ -162,8 +163,9 @@ type Route struct {
 	// load balancing backends.
 	LBEndpoints []string
 
-	Name      string
-	Namespace string
+	Name       string
+	Namespace  string
+	ConfigInfo filters.ConfigInfo
 }
 
 type RoutePredicate func(*Route) bool

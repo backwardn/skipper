@@ -1326,6 +1326,31 @@ api-usage-monitoring-configuration:
       type: string
       description: ID of the API
       example: orders-api
+    context:
+      type: object
+      description: |
+         Context information about the configuration to create the 'routeCreationTime.apiUsageMonitoring' metric.
+
+         The metric measures the total time it took to create the route for this filter.
+         The start time is taken from the 'config_created' field 
+         and the end time is measured after the route is created.
+
+         The metric is reported once for each 'config_id', 
+         i.e. if the 'config_id' is already known, nothing happens.
+
+         The metric is reported once for the entire route:
+         if there are multiple contexts, then the earliest one will be used. 
+      properties:
+        config_id:
+          type: string
+          description: ID of the current configuration
+        config_created:
+          type: string
+          format: rfc3339
+          description: timestamp of creation of the latest configuration event
+        required:
+          - context_id
+          - context_created   
     path_templates:
       description: Endpoints to be monitored.
       type: array
@@ -1366,6 +1391,10 @@ apiUsageMonitoring(`
             "foo/orders/:order-id",
             "foo/orders/:order-id/order_item/{order-item-id}"
         ],
+        "context": {
+            "config_id": "0:0",
+            "config_created":"2019-08-01T12:02:29+02:00"
+        },
         "client_tracking_pattern": "(shipping\-service|payment\-service)"
     }`,`{
         "application_id": "my-app",

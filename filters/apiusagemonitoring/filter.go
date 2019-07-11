@@ -39,6 +39,15 @@ type apiUsageMonitoringFilter struct {
 	Spec        *apiUsageMonitoringSpec
 	Paths       []*pathInfo
 	UnknownPath *pathInfo
+	ConfigInfo  apiConfigContext
+}
+
+func (f *apiUsageMonitoringFilter) ConfigID() string {
+	return f.ConfigInfo.ConfigID
+}
+
+func (f *apiUsageMonitoringFilter) ConfigCreated() time.Time {
+	return f.ConfigInfo.ConfigCreated
 }
 
 type apiUsageMonitoringStateBag struct {

@@ -2,9 +2,15 @@ package apiusagemonitoring
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var time0 = time.Now().Truncate(time.Hour).UTC()
+var time0fmt = time0.Format(time.RFC3339)
+var time1 = time0.Add(time.Hour).UTC()
+var time1fmt = time1.Format(time.RFC3339)
 
 func Test_CreateSpec(t *testing.T) {
 	spec := NewApiUsageMonitoring(true, "realm", "    abc,def, ,ghi,xyz   ", "")
@@ -307,7 +313,11 @@ func Test_CreateFilter_FullConfigMultipleApis(t *testing.T) {
 				"foo/orders",
 				"foo/orders/:order-id",
 				"foo/orders/:order-id/order_item/{order-item-id}"
-			]
+			],
+            "context": {
+                "config_id":"0:0",
+                "config_created":"` + time0fmt + `"
+            }
 		}`,
 		`{
 			"application_id": "my_app",
@@ -316,6 +326,10 @@ func Test_CreateFilter_FullConfigMultipleApis(t *testing.T) {
 				"/foo/customers/",
 				"/foo/customers/{customer-id}/"
 			],
+            "context": {
+                "config_id":"1:0",
+                "config_created":"` + time1fmt + `"
+            },
 			"client_tracking_pattern": ".*"
 		}`,
 		`{
@@ -337,6 +351,9 @@ func Test_CreateFilter_FullConfigMultipleApis(t *testing.T) {
 		}`,
 	}
 	assertApiUsageMonitoringFilter(t, args, func(t *testing.T, filter *apiUsageMonitoringFilter) {
+		assert.Equal(t, "0:0", filter.ConfigInfo.ConfigID)
+		assert.Equal(t, time0, filter.ConfigInfo.ConfigCreated)
+
 		assertPaths(t, filter.Paths, []pathMatcher{
 			{
 				ApplicationId: "my_app",

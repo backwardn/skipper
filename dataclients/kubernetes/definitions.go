@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -18,6 +19,8 @@ type resourceId struct {
 type metadata struct {
 	Namespace   string            `json:"namespace"`
 	Name        string            `json:"name"`
+	Created     time.Time         `json:"creationTimestamp"`
+	Uid         string            `json:"uid"`
 	Annotations map[string]string `json:"annotations"`
 }
 
@@ -113,6 +116,20 @@ type ingressSpec struct {
 type ingressItem struct {
 	Metadata *metadata    `json:"metadata"`
 	Spec     *ingressSpec `json:"spec"`
+}
+
+func (i ingressItem) ConfigID() string {
+	if i.Metadata == nil {
+		return ""
+	}
+	return i.Metadata.Uid
+}
+
+func (i ingressItem) ConfigCreated() time.Time {
+	if i.Metadata == nil {
+		return time.Time{}
+	}
+	return i.Metadata.Created
 }
 
 type ingressList struct {

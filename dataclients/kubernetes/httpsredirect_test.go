@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/zalando/skipper/eskip"
 	"github.com/zalando/skipper/filters/builtin"
 	"github.com/zalando/skipper/logging/loggingtest"
@@ -361,10 +362,17 @@ func TestEnableHTTPSRedirectFromIngress(t *testing.T) {
 		expect[i].Shunt = false
 	}
 
-	sort.Sort(sortRoutes(r))
+	diffRoutes(t, expect, r)
+}
+
+func diffRoutes(t *testing.T, expect []*eskip.Route, actual []*eskip.Route) {
+	sort.Sort(sortRoutes(actual))
+	for _, r := range actual {
+		r.ConfigInfo = nil
+	}
 	sort.Sort(sortRoutes(expect))
 
-	diff := cmp.Diff(r, expect)
+	diff := cmp.Diff(actual, expect)
 	if diff != "" {
 		t.Error(diff)
 	}
@@ -473,13 +481,7 @@ func TestDisableHTTPSRedirectFromIngress(t *testing.T) {
 		expect[i].Shunt = false
 	}
 
-	sort.Sort(sortRoutes(r))
-	sort.Sort(sortRoutes(expect))
-
-	diff := cmp.Diff(r, expect)
-	if diff != "" {
-		t.Error(diff)
-	}
+	diffRoutes(t, expect, r)
 }
 
 func TestChangeRedirectCodeFromIngress(t *testing.T) {
@@ -587,13 +589,7 @@ func TestChangeRedirectCodeFromIngress(t *testing.T) {
 		expect[i].Shunt = false
 	}
 
-	sort.Sort(sortRoutes(r))
-	sort.Sort(sortRoutes(expect))
-
-	diff := cmp.Diff(r, expect)
-	if diff != "" {
-		t.Error(diff)
-	}
+	diffRoutes(t, expect, r)
 }
 
 func TestEnableRedirectWithCustomCode(t *testing.T) {
@@ -692,11 +688,5 @@ func TestEnableRedirectWithCustomCode(t *testing.T) {
 		expect[i].Shunt = false
 	}
 
-	sort.Sort(sortRoutes(r))
-	sort.Sort(sortRoutes(expect))
-
-	diff := cmp.Diff(r, expect)
-	if diff != "" {
-		t.Error(diff)
-	}
+	diffRoutes(t, expect, r)
 }

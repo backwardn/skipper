@@ -128,6 +128,14 @@ type Filter interface {
 	Response(FilterContext)
 }
 
+// Filters can optionally also implement the ConfigInfo interface
+// If they do, the route will get an additional 'routeCreationTime' metric entry
+// see filter_creation_metrics.go
+type ConfigInfo interface {
+	ConfigID() string
+	ConfigCreated() time.Time
+}
+
 // Spec objects are specifications for filters. When initializing the routes,
 // the Filter instances are created using the Spec objects found in the
 // registry.

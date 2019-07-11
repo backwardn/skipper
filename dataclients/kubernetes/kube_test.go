@@ -32,10 +32,14 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/zalando/skipper/eskip"
 	"github.com/zalando/skipper/filters/builtin"
 	"github.com/zalando/skipper/predicates/source"
 )
+
+var time0 = time.Now()
+var time1 = time.Now().Add(1)
 
 type testAPI struct {
 	test      *testing.T
@@ -3850,4 +3854,13 @@ func TestSkipperDefaultFilters(t *testing.T) {
 			return
 		}
 	})
+}
+
+func Test_maxCreationTime(t *testing.T) {
+	i := maxCreationTime([]*ingressItem{
+		{Metadata: &metadata{Created: time0, Uid: "0"}},
+		{Metadata: &metadata{Created: time1, Uid: "1"}},
+	})
+	assert.Equal(t, time1, i.ConfigCreated())
+	assert.Equal(t, "1", i.ConfigID())
 }

@@ -23,6 +23,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zalando/skipper/eskip"
+	"github.com/zalando/skipper/filters"
 	"github.com/zalando/skipper/filters/builtin"
 	"github.com/zalando/skipper/predicates/source"
 	"github.com/zalando/skipper/predicates/traffic"
@@ -1280,14 +1281,30 @@ func (c *Client) loadAndConvert() ([]*eskip.Route, error) {
 	defaultFilters := c.fetchDefaultFilterConfigs()
 	log.Debugf("got default filter configurations for %d services", len(defaultFilters))
 
-	r, err := c.ingressToRoutes(state, defaultFilters)
+	rr, err := c.ingressToRoutes(state, defaultFilters)
 	if err != nil {
 		log.Debugf("converting ingresses to routes failed: %v", err)
 		return nil, err
 	}
-	log.Debugf("all routes created: %d", len(r))
 
-	return r, nil
+	i := maxCreationTime(state.ingresses)
+	for _, r := range rr {
+		r.ConfigInfo = i
+	}
+
+	log.Debugf("all routes created: %d", len(rr))
+
+	return rr, nil
+}
+
+func maxCreationTime(ingresses []*ingressItem) filters.ConfigInfo {
+	var info filters.ConfigInfo
+	for _, i := range ingresses {
+		if info == nil || i.ConfigCreated().After(info.ConfigCreated()) {
+			info = i
+		}
+	}
+	return info
 }
 
 func healthcheckRoute(healthy, reverseSourcePredicate bool) *eskip.Route {

@@ -978,6 +978,7 @@ func run(o Options, sig chan os.Signal, idleConnsCH chan struct{}) error {
 			loadbalancer.HealthcheckPostProcessor{LB: lbInstance},
 			loadbalancer.NewAlgorithmProvider(),
 			scheduler.NewRegistry(),
+			routing.NewFilterCreationMetrics(mtr),
 		},
 		SignalFirstLoad: o.WaitFirstRouteLoad,
 	}
